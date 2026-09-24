@@ -1,7 +1,9 @@
 import Fastify from 'fastify'
 import cors from '@fastify/cors'
+import jwt from '@fastify/jwt'
 
 import { ActivityRoutes } from './modules/activities/activity.routes'
+
 
 export function BuildApp() {
   const app = Fastify({

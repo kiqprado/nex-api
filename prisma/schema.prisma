@@ -8,11 +8,13 @@ datasource db {
 }
 
 model User {
-  id       String @id @default(uuid()) @db.Uuid
-  name     String
-  username String @unique
-  email    String @unique
-  password String
+  id String @id @default(uuid()) @db.Uuid
+
+  name         String?
+  username     String? @unique
+  email        String? @unique
+  phone        String? @unique
+  passwordHash String
 
   avatarUrl String?
 
@@ -25,9 +27,9 @@ model User {
 }
 
 model Sport {
-  id   String @id @default(uuid()) @db.Uuid
+  id   String  @id @default(uuid()) @db.Uuid
   name String
-  slug String @unique
+  slug String  @unique
   icon String?
 
   activities Activity[]
@@ -80,7 +82,6 @@ model Activity {
   @@index([userId])
   @@index([sportId])
   @@index([userId, startedAt])
-
   @@map("activities")
 }
 
@@ -105,6 +106,5 @@ model ActivityPoint {
 
   @@index([activityId])
   @@index([activityId, timestamp])
-
   @@map("activity_points")
 }
