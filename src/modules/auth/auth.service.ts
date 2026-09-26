@@ -66,7 +66,7 @@ export async function AuthenticateUser(data: LoginUserInput) {
     return null
   }
 
-  const PasswordMatches = await argon2.verify( user.passwordHash, data.password)
+  const PasswordMatches = await argon2.verify(user.passwordHash, data.password)
 
   if(!PasswordMatches) {
     return null

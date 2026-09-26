@@ -1,8 +1,12 @@
 import { FastifyInstance } from 'fastify'
 
-import { LoginUserSchema, RegisterUserSchema} from '../auth/auth.schema'
-import { AuthenticateUser, RegisterUser } from '../auth/auth.service'
-import { privateDecrypt } from 'node:crypto'
+import { prisma } from '../../database/prisma'
+
+import { Authenticate } from '../../plugins/authenticate'
+
+import { CreateAuthSession, DestroyAuthSession } from './auth-session'
+import { LoginUserSchema, RegisterUserSchema} from './auth.schema'
+import { AuthenticateUser, RegisterUser } from './auth.service'
 
 export async function AuthRoutes(app: FastifyInstance) {
   app.post("/auth/register", async( request, reply) => {
@@ -17,15 +21,13 @@ export async function AuthRoutes(app: FastifyInstance) {
 
     try{
       const user = await RegisterUser(parsedBody.data)
-      const token = app.jwt.sign({
-        sub: user.id
-      })
 
-      return reply.status(200).send({
-        user,
-        token
+      CreateAuthSession(app, reply, user.id)
+
+      return reply.status(201).send({
+        user
       })
-    }catch(error){
+    } catch(error) {
       if(error instanceof Error && error.message === "EMAIL_ALREADY_EXISTS") {
         return reply.status(400).send({
           message: "Este Email ja está em uso."
@@ -60,9 +62,7 @@ export async function AuthRoutes(app: FastifyInstance) {
       })
     }
 
-    const token = app.jwt.sign({
-      sub: user.id
-    })
+    CreateAuthSession(app, reply, user.id)
 
     return reply.status(200).send({
       user: {
@@ -72,8 +72,37 @@ export async function AuthRoutes(app: FastifyInstance) {
         email: user.email,
         phone: user.phone,
         avatarUrl: user.avatarUrl
-      },
-      token
+      }
     })
+  })
+
+  app.post("/auth/logout", { preHandler: Authenticate }, async(_request, reply) => {
+    DestroyAuthSession(reply)
+
+    return reply.status(204).send()
+  })
+
+  app.get("/auth/me", { preHandler: Authenticate }, async(request, reply) => {
+    const user = await prisma.user.findUnique({
+      where: {
+        id: request.user.id
+      },
+      select: {
+        id: true,
+        name: true,
+        username: true,
+        email: true,
+        phone: true,
+        avatarUrl: true
+      }
+    })
+
+    if(!user) {
+      return reply.status(401).send({
+        message: "Unauthorized"
+      })
+    }
+
+    return reply.send({ user })
   })
 }

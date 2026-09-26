@@ -1,25 +1,37 @@
 import Fastify from 'fastify'
 import cors from '@fastify/cors'
+import cookie from '@fastify/cookie'
 import jwt from '@fastify/jwt'
 
 import { ActivityRoutes } from './modules/activities/activity.routes'
+import { AuthRoutes } from './modules/auth/auth.routes'
 
+export async function BuildApp() {
+  const app = Fastify()
 
-export function BuildApp() {
-  const app = Fastify({
-    logger: true
+  const jwtSecret = process.env.JWT_SECRET
+  const clientUrl = process.env.CLIENT_URL
+
+  if(!jwtSecret) {
+    throw new Error("JWT-SECRET is not defined")
+  }
+
+  if(!clientUrl) {
+    throw new Error("CLIENT_URL is not defined")
+  }
+
+  await app.register(cors, {
+    origin: clientUrl,
+    credentials: true
   })
 
-  app.register(cors, {
-    origin: true
+  await app.register(cookie)
+
+  await app.register(jwt, {
+    secret: jwtSecret
   })
 
-  app.get('/health', async () => {
-    return {
-      status: 'ok'
-    }
-  })
-
+  app.register(AuthRoutes)
   app.register(ActivityRoutes)
 
   return app
