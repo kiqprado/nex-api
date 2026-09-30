@@ -1,5 +1,5 @@
-import { prisma } from '../../database/prisma'
-import { CreateActivityInput } from './activity.schema'
+import { prisma } from '../../database/prisma.js'
+import { CreateActivityInput } from './activity.schema.js'
 
 export async function CreateActivity(userId: string, input: CreateActivityInput) {
   const sport = await prisma.sport.findUnique({

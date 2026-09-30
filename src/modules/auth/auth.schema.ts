@@ -16,9 +16,22 @@ export const RegisterUserSchema = z.object({
 
 
 export const LoginUserSchema = z.object({
-  identifier: z.string().trim().min(1, "User is required")
+  identifier: z.string().trim().min(1, "User is required"),
+  password: z.string().min(1, "Password is required")
+})
+
+export const CompleteProfileSchema = z.object({
+  name: z.string().trim()
+  .min(2, "Name must have at least 2 characters")
+  .max(80, "Name is too long"),
+  username: z.string().trim().toLowerCase()
+  .min(3, "Username must have at least 3 characters")
+  .max(30, "Username is too long")
+  .regex(/^[a-z0-9._]+$/, "Username can only contain letters, numbers, dots and underscores")
 })
 
 export type RegisterUserInput = z.infer<typeof RegisterUserSchema>
 
 export type LoginUserInput = z.infer<typeof LoginUserSchema>
+
+export type CompleteProfileInput = z.infer<typeof CompleteProfileSchema>

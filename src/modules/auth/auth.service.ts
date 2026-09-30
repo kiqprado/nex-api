@@ -1,11 +1,12 @@
 import argon2 from 'argon2'
 
-import { prisma } from '../../database/prisma'
+import { Prisma } from '../../generated/prisma/client.js'
+import { prisma } from '../../database/prisma.js'
 
-import { LoginUserInput, RegisterUserInput  } from './auth.schema'
+import { LoginUserInput, RegisterUserInput, CompleteProfileInput  } from './auth.schema.js'
 
 export async function RegisterUser(data: RegisterUserInput) {
-  const email = data.email?.trim().toLocaleLowerCase() ?? null
+  const email = data.email?.trim().toLowerCase() ?? null
   const phone = data.phone?.trim() ?? null
 
   if(email) {
@@ -54,7 +55,7 @@ export async function RegisterUser(data: RegisterUserInput) {
 }
 
 export async function AuthenticateUser(data: LoginUserInput) {
-  const identifier = data.identifier.trim().toLocaleLowerCase()
+  const identifier = data.identifier.trim().toLowerCase()
 
   const user = await prisma.user.findFirst({
     where: {
@@ -66,11 +67,60 @@ export async function AuthenticateUser(data: LoginUserInput) {
     return null
   }
 
-  const PasswordMatches = await argon2.verify(user.passwordHash, data.password)
+  const passwordMatches = await argon2.verify(user.passwordHash, data.password)
 
-  if(!PasswordMatches) {
+  if(!passwordMatches) {
     return null
   }
 
   return user
+}
+
+export async function GetAuthenticatedUser(userId: string) {
+  return prisma.user.findUnique({
+    where: {
+      id: userId
+    },
+
+    select: {
+      id: true,
+      name: true,
+      username: true,
+      email: true,
+      phone: true,
+      avatarUrl: true
+    }
+  })
+}
+
+export async function CompleteProfileUser(userId: string, data: CompleteProfileInput) {
+  try {
+    const user = await prisma.user.update({
+      where: {
+        id: userId
+      },
+      data: {
+        name: data.name,
+        username: data.username
+      },
+      select: {
+        id: true,
+        name: true,
+        username: true,
+        email: true,
+        phone: true,
+        avatarUrl: true
+      }
+    })
+
+    return { user, usernameConflict: false}
+  } catch (error) {
+    if(error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return {
+        user: null,
+        usernameConflict: true
+      }
+    }
+    throw error
+  } 
 }

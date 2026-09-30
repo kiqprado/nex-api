@@ -3,8 +3,8 @@ import cors from '@fastify/cors'
 import cookie from '@fastify/cookie'
 import jwt from '@fastify/jwt'
 
-import { ActivityRoutes } from './modules/activities/activity.routes'
-import { AuthRoutes } from './modules/auth/auth.routes'
+import { ActivityRoutes } from './modules/activities/activity.routes.js'
+import { AuthRoutes } from './modules/auth/auth.routes.js'
 
 export async function BuildApp() {
   const app = Fastify()

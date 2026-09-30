@@ -1,10 +1,10 @@
 import { FastifyInstance } from 'fastify'
 import {z} from 'zod'
 
-import { Authenticate } from '../../plugins/authenticate'
+import { Authenticate } from '../../plugins/authenticate.js'
 
-import { CreateActivitySchema } from './activity.schema'
-import { CreateActivity, GetActivities, GetActivityById } from './activity.service'
+import { CreateActivitySchema } from './activity.schema.js'
+import { CreateActivity, GetActivities, GetActivityById } from './activity.service.js'
 
 const ActivityParamsSchema = z.object({id: z.uuid()})
 

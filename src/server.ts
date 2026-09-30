@@ -1,7 +1,7 @@
 import  "dotenv/config"
-import { BuildApp } from "./app"
+import { BuildApp } from "./app.js"
 
-const app = BuildApp()
+const app = await BuildApp()
 const port = 3333
 
 try {
@@ -14,4 +14,4 @@ try {
 } catch(error) {
   app.log.error(error)
   process.exit(1)
-}
+} 

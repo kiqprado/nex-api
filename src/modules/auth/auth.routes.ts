@@ -1,12 +1,10 @@
 import { FastifyInstance } from 'fastify'
 
-import { prisma } from '../../database/prisma'
+import { Authenticate } from '../../plugins/authenticate.js'
 
-import { Authenticate } from '../../plugins/authenticate'
-
-import { CreateAuthSession, DestroyAuthSession } from './auth-session'
-import { LoginUserSchema, RegisterUserSchema} from './auth.schema'
-import { AuthenticateUser, RegisterUser } from './auth.service'
+import { CreateAuthSession, DestroyAuthSession } from './auth-session.js'
+import { LoginUserSchema, RegisterUserSchema, CompleteProfileSchema} from './auth.schema.js'
+import { AuthenticateUser, RegisterUser, GetAuthenticatedUser, CompleteProfileUser } from './auth.service.js'
 
 export async function AuthRoutes(app: FastifyInstance) {
   app.post("/auth/register", async( request, reply) => {
@@ -44,6 +42,30 @@ export async function AuthRoutes(app: FastifyInstance) {
     }
   })
 
+  app.patch("/auth/profile", { preHandler: Authenticate }, async(request, reply) => {
+    const result = CompleteProfileSchema.safeParse(request.body)
+
+    if(!result.success) {
+      return reply.status(400).send({
+        message: "Invalid Profile data",
+        issues: result.error.issues
+      })
+    }
+
+    const { user, usernameConflict } = await CompleteProfileUser(
+      request.user.id,
+      result.data
+    )
+
+    if(usernameConflict) {
+      return reply.status(409).send({
+        message: "Username already in use!"
+      })
+    }
+
+    return reply.status(200).send({ user })
+  })
+
   app.post("/auth/login", async (request, reply) => {
     const parsedBody = LoginUserSchema.safeParse(request.body)
 
@@ -76,26 +98,8 @@ export async function AuthRoutes(app: FastifyInstance) {
     })
   })
 
-  app.post("/auth/logout", { preHandler: Authenticate }, async(_request, reply) => {
-    DestroyAuthSession(reply)
-
-    return reply.status(204).send()
-  })
-
   app.get("/auth/me", { preHandler: Authenticate }, async(request, reply) => {
-    const user = await prisma.user.findUnique({
-      where: {
-        id: request.user.id
-      },
-      select: {
-        id: true,
-        name: true,
-        username: true,
-        email: true,
-        phone: true,
-        avatarUrl: true
-      }
-    })
+    const user = await GetAuthenticatedUser(request.user.id)
 
     if(!user) {
       return reply.status(401).send({
@@ -105,4 +109,11 @@ export async function AuthRoutes(app: FastifyInstance) {
 
     return reply.send({ user })
   })
+
+  app.post("/auth/logout", async(_request, reply) => {
+    DestroyAuthSession(reply)
+
+    return reply.status(204).send()
+  })
+
 }
