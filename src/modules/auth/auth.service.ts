@@ -43,11 +43,20 @@ export async function RegisterUser(data: RegisterUserInput) {
     },
     select: {
       id: true,
+
       name: true,
       username: true,
+
       email: true,
       phone: true,
+
       avatarUrl: true,
+      bio: true,
+
+      city: true,
+      state: true,
+      country: true,
+
       createdAt: true,
       updatedAt: true
     }
@@ -73,7 +82,22 @@ export async function AuthenticateUser(data: LoginUserInput) {
     return null
   }
 
-  return user
+  return {
+    id: user.id,
+
+    name: user.name,
+    username: user.username,
+
+    email: user.email,
+    phone: user.phone,
+
+    avatarUrl: user.avatarUrl,
+    bio: user.bio,
+
+    city: user.city,
+    state: user.state,
+    country: user.country
+  }
 }
 
 export async function GetAuthenticatedUser(userId: string) {
@@ -84,11 +108,19 @@ export async function GetAuthenticatedUser(userId: string) {
 
     select: {
       id: true,
+
       name: true,
       username: true,
+
       email: true,
       phone: true,
-      avatarUrl: true
+
+      avatarUrl: true,
+      bio: true,
+
+      city: true,
+      state: true,
+      country: true
     }
   })
 }
@@ -101,15 +133,29 @@ export async function CompleteProfileUser(userId: string, data: CompleteProfileI
       },
       data: {
         name: data.name,
-        username: data.username
+        username: data.username,
+
+        city: data.city,
+        state: data.state,
+        country: data.country,
+
+        bio: data.bio || null
       },
       select: {
         id: true,
+
         name: true,
         username: true,
+        
         email: true,
         phone: true,
-        avatarUrl: true
+
+        avatarUrl: true,
+        bio: true,
+
+        city: true,
+        state: true,
+        country: true
       }
     })
 

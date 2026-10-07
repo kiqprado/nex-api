@@ -27,7 +27,13 @@ export const CompleteProfileSchema = z.object({
   username: z.string().trim().toLowerCase()
   .min(3, "Username must have at least 3 characters")
   .max(30, "Username is too long")
-  .regex(/^[a-z0-9._]+$/, "Username can only contain letters, numbers, dots and underscores")
+  .regex(/^[a-z0-9._]+$/, "Username can only contain letters, numbers, dots and underscores"),
+  city: z.string().trim()
+  .min(2, "City must have at least 2 characters")
+  .max(100, "City is too long."),
+  state: z.string().trim().toUpperCase().length(2, "State must have 2 characters"),
+  country: z.string().trim().toUpperCase().length(2, "Country must have 2 characters"),
+  bio: z.string().trim().max(160, "Bio must have at most 160 characters.").optional()
 })
 
 export type RegisterUserInput = z.infer<typeof RegisterUserSchema>

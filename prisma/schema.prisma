@@ -17,6 +17,11 @@ model User {
   passwordHash String
 
   avatarUrl String?
+  bio       String?
+
+  city    String?
+  state   String?
+  country String?
 
   activities Activity[]
 

@@ -22,7 +22,15 @@ export async function BuildApp() {
 
   await app.register(cors, {
     origin: clientUrl,
-    credentials: true
+    credentials: true,
+    methods: [
+    "GET",
+    "POST",
+    "PATCH",
+    "PUT",
+    "DELETE",
+    "OPTIONS"
+  ]
   })
 
   await app.register(cookie)
