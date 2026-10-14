@@ -4,7 +4,7 @@ import {z} from 'zod'
 import { Authenticate } from '../../plugins/authenticate.js'
 
 import { CreateActivitySchema } from './activity.schema.js'
-import { CreateActivity, GetActivities, GetActivityById } from './activity.service.js'
+import { CreateActivity, GetActivities, GetActivityById, GetActivitiesCount } from './activity.service.js'
 
 const ActivityParamsSchema = z.object({id: z.uuid()})
 
@@ -24,6 +24,13 @@ export async function ActivityRoutes(app: FastifyInstance) {
     const activities = await GetActivities(userId)
 
     return reply.status(200).send(activities)
+  })
+
+  app.get('/activities/count', { preHandler: Authenticate}, async(request, reply) => {
+    const userId = request.user.id
+    const count = await GetActivitiesCount(userId)
+
+    return reply.status(200).send({ count })
   })
 
   app.get('/activities/:id',{ preHandler: Authenticate }, async(request, reply) => {

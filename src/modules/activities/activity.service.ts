@@ -97,3 +97,11 @@ export async function GetActivityById(userId: string, activityId: string) {
     }
   })
 }
+
+export async function GetActivitiesCount(userId: string) {
+  return prisma.activity.count({
+    where: {
+      userId
+    }
+  })
+}
