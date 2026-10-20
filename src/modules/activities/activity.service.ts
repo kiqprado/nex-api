@@ -1,5 +1,11 @@
 import { prisma } from '../../database/prisma.js'
+
 import { CreateActivityInput } from './activity.schema.js'
+
+import { format, startOfWeek, subWeeks } from 'date-fns'
+import { fromZonedTime, toZonedTime } from 'date-fns-tz'
+
+const TIME_ZONE = 'America/Sao_Paulo'
 
 export async function CreateActivity(userId: string, input: CreateActivityInput) {
   const sport = await prisma.sport.findUnique({
@@ -104,4 +110,74 @@ export async function GetActivitiesCount(userId: string) {
       userId
     }
   })
+}
+
+export async function GetActivitiesStreak(userId: string ) {
+  const now = toZonedTime(new Date(), TIME_ZONE)
+
+  function GetWeekKey(date: Date): string {
+    return format(
+      startOfWeek(date, { weekStartsOn: 1}),
+      'yyyy-MM-dd'
+    )
+  }
+
+  const currentWeekStart = startOfWeek(now, { weekStartsOn: 1})
+
+  const [ totalActivities, activities ] = await Promise.all([
+    GetActivitiesCount(userId),
+
+    prisma.activity.findMany({
+      where: { userId },
+      select: { startedAt: true },
+      orderBy: { startedAt: 'asc' }
+    })
+  ])
+
+  const weekCounts = new Map<string, number>()
+
+  for(const activity of activities) {
+    const localStartedAt = toZonedTime(
+      activity.startedAt,
+      TIME_ZONE
+    )
+
+    const weekKey = GetWeekKey(localStartedAt)
+
+    weekCounts.set(
+      weekKey, (weekCounts.get(weekKey) ?? 0) + 1
+    )
+  }
+
+  const currentWeekKey = GetWeekKey(currentWeekStart)
+  const activitiesThisWeek = weekCounts.get(currentWeekKey) ?? 0
+
+  const weeklyLevel = activitiesThisWeek === 0
+    ? null
+    : activitiesThisWeek === 1
+      ? 'bronze'
+      : activitiesThisWeek <= 3
+        ? 'silver'
+        : 'gold'
+
+  let weekToCheck = activitiesThisWeek > 0 ? currentWeekStart : subWeeks(currentWeekStart, 1)
+  let weeklyStreak =  0
+
+  while(true) {
+    const weekKey = GetWeekKey(weekToCheck)
+
+    if(!weekCounts.has(weekKey)) {
+      break
+    }
+
+    weeklyStreak += 1
+    weekToCheck = subWeeks(weekToCheck, 1)
+  }
+
+  return {
+    totalActivities,
+    activitiesThisWeek,
+    weeklyStreak,
+    weeklyLevel
+  }
 }
