@@ -33,7 +33,7 @@ export async function ActivityRoutes(app: FastifyInstance) {
     return reply.status(200).send({ count })
   })
 
-  app.get('/activities/stats', {preHandler: Authenticate}, async(request, reply)=> {
+  app.get('/activities/streak', {preHandler: Authenticate}, async(request, reply)=> {
     const userId = request.user.id
     const stats = await GetActivitiesStreak(userId)
 
