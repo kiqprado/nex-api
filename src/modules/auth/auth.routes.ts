@@ -71,7 +71,7 @@ export async function AuthRoutes(app: FastifyInstance) {
 
     if(!parsedBody.success) {
       return reply.status(400).send({
-        message: "Invalid Rquest",
+        message: "Invalid Request",
         issues: parsedBody.error.issues
       })
     }
@@ -86,16 +86,7 @@ export async function AuthRoutes(app: FastifyInstance) {
 
     CreateAuthSession(app, reply, user.id)
 
-    return reply.status(200).send({
-      user: {
-        id: user.id,
-        name: user.name,
-        username: user.username,
-        email: user.email,
-        phone: user.phone,
-        avatarUrl: user.avatarUrl
-      }
-    })
+    return reply.status(200).send({ user })
   })
 
   app.get("/auth/me", { preHandler: Authenticate }, async(request, reply) => {
